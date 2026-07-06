@@ -13,6 +13,7 @@ import CartPage from '../view/user/CartPage.vue';
 import OrderPage from '../view/user/OrderPage.vue';
 import ProfilePage from '../view/user/ProfilePage.vue';
 import CategoriesPage from '../view/user/CategoriesPage.vue';
+import ContactPage from '../view/user/ContactPage.vue';
 
 const routes = [
   { path: '/', component: home },
@@ -28,6 +29,7 @@ const routes = [
   { path: '/checkout', component: CheckoutPage },
   { path: '/order', component: OrderPage },
   { path: '/profile', component: ProfilePage },
+  { path: '/contact', component: ContactPage },
 
   //
   { path: '/admin/product', component: ProductPage },

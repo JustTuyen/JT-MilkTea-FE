@@ -123,10 +123,15 @@
                 <div class="text-left mb-2 pb-2 text-black">
                     <div class="p-2">
                         <label class="font-bold mr-2">Options:</label>
-                        <select name="card" id="cars" class="cursor-pointer bg-white p-2 rounded-md  text-[14px]">
-                            <option class="text-[14px]" value="volvo">Select Option</option>
-                            <option class="text-[14px]"  v-for="variant in product.variants"
-                        :key="variant.variantId" :value="variant.variantId">{{ variant.selectOptions }}
+                        <select name="card" id="cars" 
+                        v-model="selectedVariationID"
+                        class="cursor-pointer bg-white p-2 rounded-md  text-[14px]">
+                            <option class="text-[14px]" 
+                            value="volvo">Select Option</option>
+                            <option class="text-[14px]"  
+                            v-for="variant in product.variants"
+                            :key="variant.variantId" 
+                            :value="variant.variantId">{{ variant.selectOptions }}
                                 ||Price: 
                                 {{ formatPrice(variant.variantPrice) }}</option>
                         </select>
@@ -143,7 +148,7 @@
                                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14"/>
                                 </svg>
                             </button>
-                            <input type="text" id="quantity-input" 
+                            <input type="number" id="quantity-input"  v-model.number="quantity" 
                             data-input-counter aria-describedby="helper-text-explanation" 
                             class="border-x-0 h-10 placeholder:text-heading text-center w-full
                             bg-neutral-secondary-medium border-default-medium py-2.5
@@ -173,7 +178,9 @@
                 <!-- buttons -->
                 <div class="text-left flex items-center py-4 mb-2">
                     <button class="rounded-lg bg-[#995F2F] text-white font-bold shadow-md 
-                    px-4 py-2 w-full">
+                    px-4 py-2 w-full"
+                    @click="handleAddItemToCart"
+                    >
                         Add to Cart
                     </button>
                 </div>
@@ -253,14 +260,18 @@
 
 </template>
 <script setup>
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch, computed } from 'vue';
 import Navbar from '../../components/Navbar.vue'
 import { formatPrice } from '../../store/Ultimate.ts';
 import axios from 'axios';
+import { useCartStore } from '../../store/Store.ts';
+//import { useAuthStore } from '../../store/Auth.ts';
 import { useRoute } from 'vue-router';
 const route = useRoute();
 const loading = ref(true);
 const product = ref(null);
+const cartStore = useCartStore();
+// const authStore = useAuthStore();
 
 async function getProduct(){
     loading.value = true;
@@ -270,16 +281,48 @@ async function getProduct(){
         //console.log("Fetched product:", res.data);
     } catch(err){
         console.error("Error fetching product:", err);
-        window.location.replace("https://stackoverflow.com");
+        //window.location.replace("https://stackoverflow.com");
 
     } finally{
         loading.value = false;
     }
 }
+
+const getMainImage = (product) =>{
+    const main = product.images?.find(img => img.displayOrder == 0);
+    return main ? main.imgURL : '';
+}
+
+//////////////
+const selectedVariationID = ref(null);
+const quantity = ref(1);
+
+const selectedVariation = computed(() => {
+    return product.value?.variants?.find(
+        v => v.variantId === selectedVariationID.value
+    ) ?? null;
+});
+
+const selectedVariationName = computed(() => {
+  if (!product.value || !product.value.variants) return null;
+    return selectedVariation.value ? selectedVariation.value?.selectOptions : "option name"
+});
+
+const handleAddItemToCart  = () =>{
+    
+    cartStore.addItemToCart({
+        name: product.value?.name,
+        price: product.value?.basePrice,
+        quantity: quantity.value,
+        primaryImageURL: product.value?.images?.find(i => i.displayOrder === 0)?.imgURL ?? "",
+        variantId: selectedVariation.value?.variantId,
+        optionContext: selectedVariationName.value ?? ""
+    })
+}
+
 onMounted(() =>{
     getProduct();
 });
-
 watch(() => route.params.id, getProduct);
 
 </script>

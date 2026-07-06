@@ -9,20 +9,27 @@
             </svg>
         </div>
         <div class="p-2 text-[12px]">
-            <div class="flex justify-evenly shadow-md
-            items-center">
-                <img src="../assets/tea.jpg" 
-                class="w-18 h-18 object-center object-cover rounded-lg"
-                alt="">
-                <div class="p-2 text-left">
-                    <p>item name</p>
-                    <p>item option</p>
-                    <p>item price</p>
+            <p class="text-right text-shadow-md font-bold text-[#D0311E]" @click="CleanAll">
+                Clear cart?
+            </p>
+            <div class="grid grid-flow-col row-span-4 gap-1 items-center mb-2 shadow-md" 
+            v-for="item in cartStore.cartItems"
+            :key="item.variantId"
+            >
+                <div class="col">
+                    <img src="../assets/tea.jpg" 
+                    class="w-18 h-18 object-center object-cover rounded-lg"
+                    alt="">
                 </div>
-                <div class="p-2 text-center">
-                    <p>item amount</p>
+                <div class="col-span-3 text-left align-center">
+                    <p class="text-wrap text-[12px]">{{ item.name }}</p>
+                    <p class="text-wrap text-[12px]">{{ item.optionContext }}</p>
+                    <p class="text-wrap text-[12px] font-bold">{{ formatPrice(item.price) }}</p>
                 </div>
-                <div class="p-1">
+                <div class="col-span-2 text-center">
+                    <p>{{ item.quantity }}</p>
+                </div>
+                <div class="col-span-1 justify-center align-center">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#995F2F" class="bi bi-x-circle-fill" viewBox="0 0 16 16">
                         <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293z"/>
                     </svg>
@@ -49,6 +56,21 @@
 </template>
 
 <script setup>
+import { onMounted } from 'vue';
+import { useCartStore } from '../store/Store';
+import { formatPrice } from '../store/Ultimate';
+const cartStore = useCartStore();
+
+
+function CleanAll() {
+  if (confirm(`Bạn có chắc bạn muốn xóa sản phẩm này khỏi giỏ?`)) {
+    cartStore.clearCart();
+  }
+}
+
+onMounted(() =>{
+    cartStore.loadUserCart();
+})
 </script>
 
 <style scoped>
