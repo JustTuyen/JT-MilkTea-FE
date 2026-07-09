@@ -14,21 +14,22 @@
                 </div>
                 <div class="p-2">
                     <div class="border items-center grid 
-                    grid-cols-6 gap-1 text-[14px]">
-                        <img src="../../assets/logo.png" 
+                    grid-cols-6 gap-1 text-[14px]"
+                    v-for="item in cartStore.cartItems" :key="item.cartItemId">
+                        <img :src="item.primaryImageURL" 
                         class="h-25 w-25 object-cover 
                         object-center rounded-lg">
                         <div class="p-2">
-                            <p>Item name</p>
+                            <p>{{item.name}}</p>
                         </div>
                          <div class="p-2">
-                            <p>Item option</p>
+                            <p>{{item.optionContext}}</p>
                         </div>
                          <div class="p-2">
-                            <p>Item amount</p>
+                            <p>{{ item.quantity }}</p>
                         </div>
                          <div class="p-2">
-                            <p>Item price</p>
+                            <p>{{ formatPrice(item.price) }}</p>
                         </div>
                         <div class="p-2 text-center">
                             <button>
@@ -65,12 +66,12 @@
                     <div class="flex gap-4
                     text-[18px]">
                         <span>Total:</span>
-                        <p>0.000000$</p>
+                        <p>{{formatPrice(cartStore.totalPrice)}}</p>
                     </div>
                     <div class="flex gap-4 font-bold
                     text-[20px]">
                         <span>Bill:</span>
-                        <p>0.000000$</p>
+                        <p>{{formatPrice(cartStore.totalPrice)}}</p>
                     </div>
                 </div>
                 <div class="p-2">
@@ -92,6 +93,20 @@
 <script setup>
 import Navbar from '../../components/Navbar.vue';
 import Footer from '../../components/Footer.vue';
+import { onMounted, } from 'vue';
+import { useCartStore } from '../../store/Store.ts';
+import { formatPrice } from '../../store/Ultimate.ts';
+
+const cartStore = useCartStore();
+function CleanAll(){
+    if(confirm(`Bạn có chắc bạn muốn xóa sản phẩm này khỏi giỏ?`)){
+        cartStore.clearCart();
+    }
+}
+
+onMounted(() =>{
+    cartStore.loadUserCart();
+})
 </script>
 <style scoped>
 </style>

@@ -40,7 +40,21 @@ export const useCartStore = defineStore("cart",{
     }),
 
     getters:{
+        totalCount: (state): number =>{
+            return(state.cartItems || []).reduce(
+                (sum, item) => sum + (Number(item.quantity) || 0), 0
+            )
+        },
 
+        totalPrice: (state): number => {
+            return(state.cartItems || []).reduce(
+                (sum, item) => {
+                    const itemPrice = parseFloat(String(item.price)) || 0;
+                    const itemQuantity = parseInt(String(item.quantity)) || 0;
+                    return sum = (itemPrice*itemQuantity);
+                } , 0
+            )
+        },
     },
 
     actions:{
@@ -100,6 +114,66 @@ export const useCartStore = defineStore("cart",{
                 console.error("Lỗi tải giỏ từ database", error);
 
             }
+        },
+
+        //QUANTITY COONTROLLER
+        async incrementQuantity(newItem:AddCartItemDTO) {
+            const existingItem = this.cartItems.find(
+                item =>
+                    item.variantId === newItem.variantId &&
+                    item.optionContext === newItem.optionContext
+            );
+            if (existingItem){
+                existingItem.quantity++;;
+                await this.saveCart();
+            }
+        },
+
+        async decrementQuantity(newItem:AddCartItemDTO) {
+            const existingItem = this.cartItems.find(
+                item =>
+                    item.variantId === newItem.variantId &&
+                    item.optionContext === newItem.optionContext
+            );
+            if (existingItem){
+                existingItem.quantity--;
+                if(existingItem.quantity <= 0){
+                    this.cartItems = this.cartItems.filter(
+                        item =>
+                        !(
+                            item.variantId === newItem.variantId &&
+                            item.optionContext === newItem.optionContext
+                        )
+                    );
+                }
+                await this.saveCart();
+            }
+        },
+
+        //by input
+        async setQuantityItem(newItem:AddCartItemDTO, setQuantity:  number){
+            const existingItem = this.cartItems.find(
+                item =>
+                    item.variantId === newItem.variantId &&
+                    item.optionContext === newItem.optionContext
+            );
+
+            if(!existingItem){
+                return;
+            }
+
+            if (existingItem) {
+                existingItem.quantity === setQuantity;
+            }
+
+            if (existingItem.quantity <= 0) {
+                this.cartItems = this.cartItems.filter(
+                    item => !(item.variantId === newItem.variantId && 
+                            item.optionContext === newItem.optionContext)
+                );
+            }
+            
+            await this.saveCart()           
         }
     },
 

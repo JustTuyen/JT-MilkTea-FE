@@ -14,7 +14,7 @@
             </p>
             <div class="grid grid-flow-col row-span-4 gap-1 items-center mb-2 shadow-md" 
             v-for="item in cartStore.cartItems"
-            :key="item.variantId"
+            :key="item.cartItemId"
             >
                 <div class="col">
                     <img src="../assets/tea.jpg" 
