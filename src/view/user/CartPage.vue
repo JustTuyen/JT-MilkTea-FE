@@ -13,31 +13,41 @@
                     </svg>
                 </div>
                 <div class="p-2">
-                    <p @click="CleanAll()">clean cart</p>
-                    <div class="border items-center grid 
-                    grid-cols-6 gap-1 text-[14px]"
-                    v-for="item in cartStore.cartItems" :key="item.cartItemId">
-                        <img :src="item.primaryImageURL" 
-                        class="h-25 w-25 object-cover 
-                        object-center rounded-lg">
-                        <div class="p-2">
-                            <p>{{item.name}}</p>
+                    <div v-if="cartStore.cartItems.length === 0">
+                        <div class="border-1 rounded-lg border-[#978F66] p-3">
+                            <p>There's no product in cart</p>
                         </div>
-                         <div class="p-2">
-                            <p>{{item.optionContext}}</p>
-                        </div>
-                         <div class="p-2">
-                            <p>{{ item.quantity }}</p>
-                        </div>
-                         <div class="p-2">
-                            <p>{{ formatPrice(item.price) }}</p>
-                        </div>
-                        <div class="p-2 text-center">
-                            <button @click="RemoveAnItem(item)">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-circle-fill" viewBox="0 0 16 16">
-                                    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293z"/>
-                                </svg>
-                            </button>
+                    </div>
+                    <div v-else>
+                        <p class="font-bold text-right text-[14px] 
+                        text-shadow-md text-[#D0311E]" @click="CleanAll()">clean cart</p>
+                        <div class="bg-white p-2 rounded-lg shadow-md items-center 
+                        mt-2
+                        grid 
+                        grid-cols-6 gap-1 text-[14px]"
+                        v-for="item in cartStore.cartItems" :key="item.cartItemId">
+                            <img :src="item.primaryImageURL" 
+                            class="h-25 w-25 object-cover 
+                            object-center rounded-lg">
+                            <div class="p-2">
+                                <p>{{item.name}}</p>
+                            </div>
+                            <div class="p-2">
+                                <p>{{item.optionContext}}</p>
+                            </div>
+                            <div class="p-2">
+                                <p>{{ item.quantity }}</p>
+                            </div>
+                            <div class="p-2">
+                                <p>{{ formatPrice(item.price) }}</p>
+                            </div>
+                            <div class="p-2 text-center">
+                                <button @click="RemoveAnItem(item)">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-circle-fill" viewBox="0 0 16 16">
+                                        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293z"/>
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -76,7 +86,7 @@
                     </div>
                 </div>
                 <div class="p-2">
-                    <router-link to="/order">
+                    <router-link to="/checkout">
                     <button class="bg-[#622B14] p-2 gap-2 cursor-pointer
                     rounded-lg w-full
                     text-white font-bold text-[18px]"

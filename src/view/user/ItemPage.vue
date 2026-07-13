@@ -30,7 +30,7 @@
                         fill="white" class="bi bi-tag-fill mr-1" viewBox="0 0 16 16">
                             <path d="M2 1a1 1 0 0 0-1 1v4.586a1 1 0 0 0 .293.707l7 7a1 1 0 0 0 1.414 0l4.586-4.586a1 1 0 0 0 0-1.414l-7-7A1 1 0 0 0 6.586 1zm4 3.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"/>
                         </svg>
-                        <p class="text-white">Discount</p>
+                        <p class="text-white">{{ product.discountPercentage}}%</p>
                     </div>
                 </div>
                 <!-- images -->
@@ -102,8 +102,12 @@
                 <div v-if="product && product.discountId"
                 class="text-left bg-[#E4D6A9] mb-2 rounded shadow-md">
                     <div class="bg-[#978F66] p-2 items-center
-                    rounded justify-between flex ">
-                        <h3>Discount Name</h3>
+                    rounded justify-between flex">
+                        <div class="font-bold text-[#622B14] underline">
+                            {{ product.discountTitle }}
+                            ---
+                            {{ product.discountPercentage }} %
+                        </div>
                         <div class="border-2 border-[#FFD400] text-yellow
                         rounded-full items-center p-1 z-1">
                             <svg xmlns="http://www.w3.org/2000/svg" 
@@ -112,10 +116,6 @@
                                 <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/>
                             </svg>
                         </div>
-                    </div>
-                    <div class="p-2">
-                        <p>Discount description goes here.</p>
-                        <span>Discount price</span>
                     </div>
                 </div>
 
@@ -144,12 +144,14 @@
                             <button type="button" id="decrement-button" data-input-counter-decrement="quantity-input" 
                             class="text-body bg-neutral-secondary-medium box-border bg-[#622B14] text-white
                             border border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading focus:ring-4 focus:ring-neutral-tertiary 
-                            font-medium leading-5 rounded-s-base text-sm px-3 focus:outline-none h-10">
+                            font-medium leading-5 rounded-s-base text-sm px-3 focus:outline-none h-10"
+                            @click="decreaseQuantity">
                                 <svg class="w-3 h-3 text-heading" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
                                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14"/>
                                 </svg>
                             </button>
-                            <input type="number" id="quantity-input"  v-model.number="quantity" 
+                            <input type="number" name="quantity" id="quantity-input"  v-model.number="quantity" 
+                            :max="Math.min(10, VariationInStock)"
                             data-input-counter aria-describedby="helper-text-explanation" 
                             class="border-x-0 h-10 placeholder:text-heading text-center w-full
                             bg-neutral-secondary-medium border-default-medium py-2.5
@@ -158,7 +160,8 @@
                             class="text-body bg-neutral-secondary-medium box-border border 
                             border-default-medium hover:bg-neutral-tertiary-medium hover:text-heading bg-[#622B14] text-white
                             focus:ring-4 focus:ring-neutral-tertiary font-medium leading-5 rounded-e-base 
-                            text-sm px-3 focus:outline-none h-10">
+                            text-sm px-3 focus:outline-none h-10"
+                            @click="increaseQuantity">
                                 <svg class="w-3 h-3 text-heading" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
                                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/>
                                 </svg>
@@ -168,13 +171,30 @@
                 </div>
 
                 <!-- pricing -->
-                <div class="text-left text-black flex items-center border-b-2 border-gray-300 py-4 mb-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-double-right" viewBox="0 0 16 16">
-                        <path fill-rule="evenodd" d="M3.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L9.293 8 3.646 2.354a.5.5 0 0 1 0-.708"/>
-                        <path fill-rule="evenodd" d="M7.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L13.293 8 7.646 2.354a.5.5 0 0 1 0-.708"/>
-                    </svg>
-
-                    <label v-if="selectedVariationID" class="ml-2 text-lg font-bold">Total Price: {{formatPrice(originalPrice)}}</label>
+                <div class="text-left text-black border-gray-300 py-4 mb-2">
+                    <div class="" v-if="product.discountId">
+                        <p v-if="selectedVariationID" class="ml-2 line-through">
+                            Total: {{formatPrice(originalPrice)}}
+                        </p>
+                        <div class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-double-right" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M3.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L9.293 8 3.646 2.354a.5.5 0 0 1 0-.708"/>
+                                <path fill-rule="evenodd" d="M7.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L13.293 8 7.646 2.354a.5.5 0 0 1 0-.708"/>
+                            </svg>
+                            <p class=" text-lg font-bold">
+                                Total Price: {{formatPrice(overallPricing)}}
+                            </p>
+                        </div>
+                    </div>
+                    <div v-else class="flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-double-right" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M3.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L9.293 8 3.646 2.354a.5.5 0 0 1 0-.708"/>
+                            <path fill-rule="evenodd" d="M7.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L13.293 8 7.646 2.354a.5.5 0 0 1 0-.708"/>
+                        </svg>
+                        <label v-if="selectedVariationID" class="ml-2 text-lg font-bold">
+                            Total Price: {{formatPrice(overallPricing)}}
+                        </label>
+                    </div>
                 </div>
 
                 <!-- buttons -->
@@ -290,6 +310,10 @@ async function getProduct(){
     }
 }
 
+const hadDiscount = computed(() => {
+    const discount = product.value?.discountId;
+})
+
 const getMainImage = (product) =>{
     const main = product.images?.find(img => img.displayOrder == 0);
     return main ? main.imgURL : '';
@@ -305,13 +329,18 @@ const selectedVariation = computed(() => {
     ) ?? null;
 });
 
+const VariationInStock = computed(() => {
+    if(!product.value || !product.value.variants) return null;
+    return selectedVariation.value ? selectedVariation.value.inStock : 0;
+});
+
+
 const selectedVariationName = computed(() => {
     if (!product.value || !product.value.variants) return null;
     const option = selectedVariation.value?.selectOptions;
     if(option){
         return Array.isArray(option)? option.join(', '): String(option);
     }
-
     return option;
 });
 
@@ -321,11 +350,32 @@ const originalPrice = computed(() =>{
     return product.value.basePrice + selectedVariation.value.variantPrice;
 })
 
+const overallPricing = computed(()=>{
+    const discount = product.value?.discountPercentage?? 0;
+    const price = originalPrice.value;
+
+    if(discount > 0){
+        const discountAmount = (price * discount)/100;
+        return Math.round(price - discountAmount);
+    }
+
+    return price
+})
+
+function decreaseQuantity() {
+  if (quantity.value > 1) quantity.value--;
+}
+function increaseQuantity() {
+    if (quantity.value < Math.min(10, VariationInStock.value)) {
+        quantity.value++;
+    }
+}
+
 const handleAddItemToCart  = () =>{
     cartStore.addItemToCart({
         userId: authStore.userId,
         name: product.value?.name,
-        price: parseFloat((originalPrice.value).toFixed(2)),
+        price: parseFloat((overallPricing.value).toFixed(2)),
         quantity: quantity.value,
         primaryImageURL: product.value?.images?.find(i => i.displayOrder === 0)?.imgURL ?? "",
         variantId: selectedVariation.value?.variantId,
