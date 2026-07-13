@@ -11,6 +11,8 @@ export interface CartItemDTO {
     variantId: number; 
     optionContext?: string;
     cartItemId: number;
+    cartId: number;
+    userId: number;
 }
 
 interface CartDTO {
@@ -18,6 +20,7 @@ interface CartDTO {
     userId: number;
     cartItems: CartItemDTO[];
 }
+
 //dto add cart
 export interface AddCartItemDTO {
     name: string;
@@ -26,6 +29,8 @@ export interface AddCartItemDTO {
     primaryImageURL: string;
     variantId: number; 
     optionContext?: string;
+    cartId?: number; 
+    userId?: number;
 }
 
 export interface AddCartDTO {
@@ -65,31 +70,32 @@ export const useCartStore = defineStore("cart",{
                 cartItems: this.cartItems
             };
 
-            try{
-                const res = await axios.post('http://localhost:5000/api/CartModels/', payload);
-                console.log(res.data.message);
-            } catch (error){
+            try {
+                //console.log('usrid:', this.userId); 
+                console.log('Sending payload:', JSON.stringify(payload));
+                const res = await axios.post('http://localhost:5000/api/CartModels', payload);
+                console.log(res.data.message); 
+            } catch (error) {
                 console.error('Cart synchronization failed:', error);
-            } finally{
-
             }
         },
 
        async addItemToCart(newItem:AddCartItemDTO) {
-            const existingItem = this.cartItems.find(
-                item =>
-                    item.variantId === newItem.variantId &&
-                    item.optionContext === newItem.optionContext
-            );
-
-            if (existingItem) {
-                existingItem.quantity += newItem.quantity;
-            } else {
-                this.cartItems.push(newItem);
+            try {
+                const existingItem = this.cartItems.find(
+                    item => item.variantId === newItem.variantId &&
+                            item.optionContext === newItem.optionContext
+                );
+                //console.log('cart item:', existingItem); 
+                if (existingItem) {
+                    existingItem.quantity += newItem.quantity;
+                } else {
+                    this.cartItems.push({ ...newItem });
+                }
+                await this.saveCart();
+            } catch (error) {
+                console.error("Failed to process local cart increment:", error);
             }
-            console.log("Current cart:", this.cartItems);
-
-            await this.saveCart();
         },
 
         async clearCart() {
@@ -109,7 +115,7 @@ export const useCartStore = defineStore("cart",{
             try{
                 const res = await axios.get<CartDTO>(`http://localhost:5000/api/CartModels/${userId}`)
                 this.cartItems = res.data.cartItems ?? [];
-                 console.log("Current cart:", this.cartItems);
+                console.log("Current cart:", this.cartItems);
             } catch(error){
                 console.error("Lỗi tải giỏ từ database", error);
 
@@ -174,6 +180,26 @@ export const useCartStore = defineStore("cart",{
             }
             
             await this.saveCart()           
+        },
+
+        //deleted cart item
+        async removeThisItem(newItem: AddCartItemDTO){
+            const existingItem = this.cartItems.find(
+                item => 
+                    item.variantId === newItem.variantId &&
+                    item.optionContext === newItem.optionContext
+            )
+
+            if(existingItem){
+                this.cartItems = this.cartItems.filter(
+                    item => !(
+                        item.variantId === newItem.variantId &&
+                        item.optionContext === newItem.optionContext
+                    )
+                )
+            }
+
+            await this.saveCart();
         }
     },
 

@@ -123,16 +123,17 @@
                 <div class="text-left mb-2 pb-2 text-black">
                     <div class="p-2">
                         <label class="font-bold mr-2">Options:</label>
-                        <select name="card" id="cars" 
+                        <select name="card" id="cars" required 
                         v-model="selectedVariationID"
                         class="cursor-pointer bg-white p-2 rounded-md  text-[14px]">
-                            <option class="text-[14px]" 
-                            value="volvo">Select Option</option>
-                            <option class="text-[14px]"  
+                            <!-- <option class="text-[14px]" 
+                            value="volvo" selected>Select Option</option> -->
+                            <option class="text-[14px]"  :disabled="variant.Instock <= 0"
                             v-for="variant in product.variants"
                             :key="variant.variantId" 
-                            :value="variant.variantId">{{ variant.selectOptions }}
-                                ||Price: 
+                            :value="variant.variantId">
+                                {{ variant.selectOptions }}
+                                ||
                                 {{ formatPrice(variant.variantPrice) }}</option>
                         </select>
                     </div>
@@ -172,7 +173,8 @@
                         <path fill-rule="evenodd" d="M3.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L9.293 8 3.646 2.354a.5.5 0 0 1 0-.708"/>
                         <path fill-rule="evenodd" d="M7.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L13.293 8 7.646 2.354a.5.5 0 0 1 0-.708"/>
                     </svg>
-                    <label class="ml-2 text-lg font-bold">Total Price: {{formatPrice(product.basePrice)}}</label>
+
+                    <label v-if="selectedVariationID" class="ml-2 text-lg font-bold">Total Price: {{formatPrice(originalPrice)}}</label>
                 </div>
 
                 <!-- buttons -->
@@ -265,13 +267,13 @@ import Navbar from '../../components/Navbar.vue'
 import { formatPrice } from '../../store/Ultimate.ts';
 import axios from 'axios';
 import { useCartStore } from '../../store/Store.ts';
-//import { useAuthStore } from '../../store/Auth.ts';
+import { useAuthStore } from '../../store/Auth.ts';
 import { useRoute } from 'vue-router';
 const route = useRoute();
 const loading = ref(true);
 const product = ref(null);
 const cartStore = useCartStore();
-// const authStore = useAuthStore();
+const authStore = useAuthStore();
 
 async function getProduct(){
     loading.value = true;
@@ -304,26 +306,47 @@ const selectedVariation = computed(() => {
 });
 
 const selectedVariationName = computed(() => {
-  if (!product.value || !product.value.variants) return null;
-    return selectedVariation.value ? selectedVariation.value?.selectOptions : "option name"
+    if (!product.value || !product.value.variants) return null;
+    const option = selectedVariation.value?.selectOptions;
+    if(option){
+        return Array.isArray(option)? option.join(', '): String(option);
+    }
+
+    return option;
 });
 
+//pricing
+const originalPrice = computed(() =>{
+    if(!product.value || !selectedVariation.value) return 0;
+    return product.value.basePrice + selectedVariation.value.variantPrice;
+})
+
 const handleAddItemToCart  = () =>{
-    
     cartStore.addItemToCart({
+        userId: authStore.userId,
         name: product.value?.name,
-        price: product.value?.basePrice,
+        price: parseFloat((originalPrice.value).toFixed(2)),
         quantity: quantity.value,
         primaryImageURL: product.value?.images?.find(i => i.displayOrder === 0)?.imgURL ?? "",
         variantId: selectedVariation.value?.variantId,
-        optionContext: selectedVariationName.value ?? ""
+        optionContext: selectedVariationName.value,
     })
 }
 
 onMounted(() =>{
     getProduct();
 });
+
 watch(() => route.params.id, getProduct);
+watch(
+  () => product.value?.variants, 
+  (newVariants) => {
+    if (newVariants && newVariants.length > 0 && !selectedVariationID.value) {
+      selectedVariationID.value = newVariants[0].variantId;
+    }
+  },
+  { immediate: true }
+);
 
 </script>
 

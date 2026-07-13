@@ -38,10 +38,10 @@
         </div>
         <div class="p-2 text-[14px] 
         text-white font-bold flex justify-between">
-            <router-link>
+            <router-link to="/cart">
                 <div class="bg-[#995F2F] 
                 px-4 rounded-lg shadow-md">
-                    <span>To Checkout</span>
+                    <span>To cart</span>
                 </div>
             </router-link>
             <router-link>
